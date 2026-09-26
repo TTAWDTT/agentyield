@@ -66,6 +66,7 @@ export interface SessionSummary {
   outputTokens: number;
   totalTokens: number;
   costUsd: number;
+  estimatedCostUsd: number;
   commits: number;
   additions: number;
   deletions: number;
@@ -84,6 +85,7 @@ export interface YieldReport {
   outputTokens: number;
   totalTokens: number;
   declaredCostUsd: number;
+  estimatedCostUsd: number;
   commits: number;
   additions: number;
   deletions: number;
@@ -117,3 +119,7 @@ export interface LedgerConfig {
   attributionWindowMinutes: number;
   privacyMode: "full" | "redact-text";
 }
+
+
+
+

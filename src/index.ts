@@ -7,3 +7,4 @@ export * from "./receipt.js";
 export * from "./dashboard.js";
 export * from "./privacy.js";
 export * from "./discover.js";
+export * from "./pricing.js";

@@ -4,6 +4,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readCommits, readEvents } from "./ledger.js";
 import { buildReport } from "./report.js";
+import type { PricingConfig } from "./pricing.js";
 
 const currentDir = dirname(fileURLToPath(import.meta.url));
 
@@ -12,6 +13,7 @@ export interface DashboardOptions {
   port?: number;
   days?: number;
   host?: string;
+  pricing?: PricingConfig;
 }
 
 export function startDashboard(options: DashboardOptions = {}): Promise<{ url: string; close: () => Promise<void> }> {
@@ -24,7 +26,7 @@ export function startDashboard(options: DashboardOptions = {}): Promise<{ url: s
     try {
       const url = new URL(request.url ?? "/", "http://localhost");
       if (url.pathname === "/api/report") {
-        const report = buildReport(readEvents(root), readCommits(root), { days });
+        const report = buildReport(readEvents(root), readCommits(root), { days, pricing: options.pricing });
         response.setHeader("Content-Type", "application/json; charset=utf-8");
         response.end(JSON.stringify(report));
         return;

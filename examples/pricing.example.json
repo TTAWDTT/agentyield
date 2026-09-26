@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "currency": "USD",
+  "models": {
+    "*": {
+      "inputPerMTokens": 0.00,
+      "cachedInputPerMTokens": 0.00,
+      "outputPerMTokens": 0.00
+    }
+  }
+}

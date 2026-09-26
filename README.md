@@ -138,7 +138,7 @@ The project is being actively iterated by Codex.
 
 
 
-## Privacy mode
+## Cost policy\n\nAgentYield never invents provider pricing. It reports **declared cost** only when\nthe adapter supplies it.\n\nFor offline planning, you can provide your own pricing file:\n\n```bash\nagentyield report --days 30 --pricing examples/pricing.example.json\n```\n\nEstimated cost is kept separate from declared cost and is omitted unless the\npricing file is explicitly supplied.\n\n## Privacy mode
 
 For a safer team analysis, keep only measurable evidence and drop prompt/output
 text at import time:
@@ -151,5 +151,6 @@ agentyield ingest --agent codex --auto --days 7
 With `redact-text`, the ledger retains timestamps, model, tool names, token
 counts, declared cost, session ids, and attribution evidence, but not prompt or
 output text.
+
 
 

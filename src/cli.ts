@@ -10,6 +10,7 @@ import { appendReceipt, createReceipt, verifyReceipts } from "./receipt.js";
 import { startDashboard } from "./dashboard.js";
 import { discoverLocalFiles, defaultLogDirectory, formatBytes } from "./discover.js";
 import { privacyModeFromValue, redactEvents } from "./privacy.js";
+import { loadPricing } from "./pricing.js";
 
 type Args = Record<string, string | boolean | string[]>;
 
@@ -76,7 +77,7 @@ Commands:
   ingest --agent claude --file <path>
   ingest --agent codex --auto  Ingest recent local Claude/Codex logs
   git --days 30                Read local Git history and attribute commits
-  report --days 30 [--json|--markdown]
+  report --days 30 [--json|--markdown] [--pricing <file>]
   receipt --commit <sha> [--session-id <id>]
   verify                       Verify the receipt hash chain
   dashboard --port 4173        Open the local dashboard
@@ -184,7 +185,9 @@ async function main(): Promise<void> {
     const events = readEvents(root);
     const commits = readCommits(root);
     const days = numberArg(args, "days", 30);
-    const report = buildReport(events, commits, { days });
+    const pricingPath = typeof args.pricing === "string" ? resolve(args.pricing) : undefined;
+    const pricing = pricingPath ? loadPricing(pricingPath) : undefined;
+    const report = buildReport(events, commits, { days, pricing });
     writeFileSync(ledgerPaths(root).configPath.replace("config.json", "latest-report.json"), JSON.stringify(report, null, 2) + "\n", "utf8");
     if (args.json === true) {
       console.log(JSON.stringify(report, null, 2));
@@ -236,6 +239,7 @@ async function main(): Promise<void> {
       root,
       port: numberArg(args, "port", 4173),
       days: numberArg(args, "days", 30),
+      pricing: typeof args.pricing === "string" ? loadPricing(resolve(args.pricing)) : undefined,
     });
     console.log(`AgentYield dashboard running at ${instance.url}`);
     console.log("Press Ctrl+C to stop.");

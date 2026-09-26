@@ -95,7 +95,7 @@ canonical SHA-256 hash，因此静默篡改可被发现。
 
 字段映射见 [`docs/ADAPTERS.md`](docs/ADAPTERS.md)。
 
-## 隐私模式\n\n如果团队只要度量、不要文本，可以在导入前剥离 prompt/output：\n\n```bash\nagentyield init --privacy redact-text\nagentyield ingest --agent codex --auto --days 7\n```\n\n`redact-text` 模式保留时间、模型、工具名、token、声明成本、session id 和归因证据，\n但不会保留 prompt/output 文本。\n\n## 隐私
+## 成本策略\n\nAgentYield 不编造供应商价格。只有适配器声明成本时才输出 **declared cost**。\n\n如需离线估算，可以显式提供 `pricing.json`：\n\n```bash\nagentyield report --days 30 --pricing examples/pricing.example.json\n```\n\n估算成本单独展示，且未提供 pricing 文件时不会出现。\n\n## 隐私模式\n\n如果团队只要度量、不要文本，可以在导入前剥离 prompt/output：\n\n```bash\nagentyield init --privacy redact-text\nagentyield ingest --agent codex --auto --days 7\n```\n\n`redact-text` 模式保留时间、模型、工具名、token、声明成本、session id 和归因证据，\n但不会保留 prompt/output 文本。\n\n## 隐私
 
 - 数据保留在本地仓库或显式选择的项目目录；
 - 无遥测、无模型调用、无远程账号；
@@ -129,6 +129,7 @@ CI 会在 Node 22 / 24 上运行类型检查、测试和构建。
 - CI 与包元数据。
 
 本项目正由 Codex 持续迭代。
+
 
 
 

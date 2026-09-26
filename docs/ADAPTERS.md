@@ -23,7 +23,7 @@ Everything else is optional.
 | output tokens | `usage.output_tokens`, `usage.completion_tokens`, `usage.outputTokens` |
 | declared cost | `usage.cost_usd`, `usage.costUSD`, `usage.cost`, `cost_usd`, `costUSD`, `cost` |
 
-If usage is absent but prompt/output text is present, AgentYield estimates tokens
+For Codex, prefer `last_token_usage` because `total_token_usage` is cumulative.\nFor all agents, provider-declared cost is never replaced by a default price.\nIf usage is absent but prompt/output text is present, AgentYield estimates tokens
 using characters/4. The estimate is only used when provider usage is unavailable.
 
 ## Claude Code (validated against public JSONL fixtures)
@@ -100,4 +100,5 @@ Real Claude Code logs often contain:
 
 When a content item is `tool_use`, AgentYield records the record as a tool event
 while preserving its token usage.
+
 
