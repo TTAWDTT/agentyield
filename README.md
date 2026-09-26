@@ -133,3 +133,18 @@ The project is being actively iterated by Codex.
 
 
 
+
+
+## Privacy mode
+
+For a safer team analysis, keep only measurable evidence and drop prompt/output
+text at import time:
+
+```bash
+agentyield init --privacy redact-text
+agentyield ingest --agent codex --auto --days 7
+```
+
+With `redact-text`, the ledger retains timestamps, model, tool names, token
+counts, declared cost, session ids, and attribution evidence, but not prompt or
+output text.

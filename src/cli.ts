@@ -9,6 +9,7 @@ import { attributeCommits, listCommits } from "./git.js";
 import { appendReceipt, createReceipt, verifyReceipts } from "./receipt.js";
 import { startDashboard } from "./dashboard.js";
 import { discoverLocalFiles, defaultLogDirectory, formatBytes } from "./discover.js";
+import { privacyModeFromValue, redactEvents } from "./privacy.js";
 
 type Args = Record<string, string | boolean | string[]>;
 
@@ -69,7 +70,7 @@ Usage:
   agentyield <command> [options]
 
 Commands:
-  init                         Create a .agentyield ledger
+  init [--privacy redact-text] Create a .agentyield ledger
   doctor                       Count likely local agent logs
   discover --agent codex       List local agent JSONL files without parsing
   ingest --agent claude --file <path>
@@ -105,7 +106,8 @@ async function main(): Promise<void> {
   const root = rootArg(args);
 
   if (command === "init") {
-    const config = initLedger(root);
+    const config = initLedger(root, { privacyMode: privacyModeFromValue(args.privacy) });
+    console.log(`Privacy mode: ${config.privacyMode}`);
     console.log(`Initialized AgentYield ledger at ${ledgerPaths(root).ledgerDir}`);
     console.log(`Attribution window: ${config.attributionWindowMinutes} minutes`);
     return;
@@ -148,15 +150,20 @@ async function main(): Promise<void> {
         console.log(`Dry run: ${files.length} file(s) would be parsed.`);
         return;
       }
-      const parsed = files.flatMap((file) => overrideAgent(parseJsonlFile(file.path), agent));
-      const result = appendEvents(root, parsed);
+      const parsed = overrideAgent(files.flatMap((file) => parseJsonlFile(file.path)), agent);
+      const privacyMode = readConfig(root).privacyMode;
+      const prepared = privacyMode === "redact-text" ? redactEvents(parsed) : parsed;
+      const result = appendEvents(root, prepared);
       console.log(`Auto-ingested ${result.added} event(s) from ${files.length} file(s) (${result.duplicates} duplicate(s)).`);
       return;
     }
     const fileArg = optionValue(args.file, "file");
     const file = resolve(fileArg);
     if (!existsSync(file)) throw new Error(`File not found: ${file}`);
-    const parsed = overrideAgent(parseJsonlFile(file), agent);
+    const config = readConfig(root);
+    const parsed = privacyModeFromValue(config.privacyMode) === "redact-text"
+      ? redactEvents(overrideAgent(parseJsonlFile(file), agent))
+      : overrideAgent(parseJsonlFile(file), agent);
     const result = appendEvents(root, parsed);
     console.log(`Ingested ${result.added} event(s) from ${basename(file)} (${result.duplicates} duplicate(s)).`);
     return;

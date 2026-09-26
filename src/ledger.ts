@@ -24,18 +24,23 @@ export function ledgerPaths(root: string = process.cwd()): LedgerPaths {
   };
 }
 
-export function initLedger(root: string): LedgerConfig {
+export function initLedger(root: string, options: { privacyMode?: LedgerConfig["privacyMode"] } = {}): LedgerConfig {
   const paths = ledgerPaths(root);
   if (!existsSync(paths.ledgerDir)) mkdirSync(paths.ledgerDir, { recursive: true });
-  const config: LedgerConfig = {
+  const defaults: LedgerConfig = {
     version: 1,
     attributionWindowMinutes: 30,
     privacyMode: "full",
   };
-  if (!existsSync(paths.configPath)) {
+  let config: LedgerConfig = defaults;
+  if (existsSync(paths.configPath)) {
+    config = readConfig(root);
+  }
+  if (options.privacyMode) config = { ...config, privacyMode: options.privacyMode };
+  if (!existsSync(paths.configPath) || options.privacyMode) {
     writeFileSync(paths.configPath, JSON.stringify(config, null, 2) + "\n", "utf8");
   }
-  return readConfig(root);
+  return config;
 }
 
 export function readConfig(root: string): LedgerConfig {
