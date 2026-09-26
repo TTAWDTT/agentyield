@@ -1,0 +1,208 @@
+#!/usr/bin/env node
+import { existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { basename, extname, join, resolve } from "node:path";
+import { initLedger, ledgerPaths, readCommits, readConfig, readEvents, readReceipts, writeCommits, writeReceipts, appendEvents } from "./ledger.js";
+import { normalizeAgentName, overrideAgent, parseJsonlFile } from "./normalize.js";
+import { buildReport, renderMarkdown, renderText } from "./report.js";
+import { attributeCommits, listCommits } from "./git.js";
+import { appendReceipt, createReceipt, verifyReceipts } from "./receipt.js";
+import { startDashboard } from "./dashboard.js";
+
+type Args = Record<string, string | boolean | string[]>;
+
+function parseArgs(argv: string[]): { command: string; args: Args } {
+  const command = argv[0] ?? "help";
+  const args: Args = {};
+  for (let index = 1; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (!token.startsWith("--")) {
+      if (!args.positional) args.positional = token;
+      continue;
+    }
+    const key = token.slice(2);
+    const next = argv[index + 1];
+    if (next === undefined || next.startsWith("--")) {
+      args[key] = true;
+    } else {
+      args[key] = next;
+      index += 1;
+    }
+  }
+  return { command, args };
+}
+
+function numberArg(args: Args, key: string, fallback: number): number {
+  const value = args[key];
+  if (typeof value === "string" && Number.isFinite(Number(value))) return Number(value);
+  return fallback;
+}
+
+function rootArg(args: Args): string {
+  const value = args.root;
+  return typeof value === "string" ? resolve(value) : process.cwd();
+}
+
+function optionValue(value: unknown, name: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`Missing required --${name} <value>`);
+  }
+  return value;
+}
+
+function walkJsonl(directory: string): string[] {
+  if (!existsSync(directory)) return [];
+  const result: string[] = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const child = join(directory, entry.name);
+    if (entry.isDirectory()) result.push(...walkJsonl(child));
+    else if (entry.isFile() && extname(entry.name) === ".jsonl") result.push(child);
+  }
+  return result;
+}
+
+function printHelp(): void {
+  console.log(`AgentYield — local-first ROI and evidence ledger for AI coding agents
+
+Usage:
+  agentyield <command> [options]
+
+Commands:
+  init                         Create a .agentyield ledger
+  doctor                       Discover likely local agent log locations
+  ingest --agent claude --file <path>
+  git --days 30                Read local Git history and attribute commits
+  report --days 30 [--json|--markdown]
+  receipt --commit <sha> [--session-id <id>]
+  verify                       Verify the receipt hash chain
+  dashboard --port 4173        Open the local dashboard
+  help                         Show this help
+
+Common options:
+  --root <dir>                 Project root (defaults to cwd)
+  --days <n>                   History window
+`);
+}
+
+function countCandidateLogs(): void {
+  const home = homedir();
+  const candidates = [
+    { name: "Claude Code", directory: join(home, ".claude", "projects") },
+    { name: "Codex CLI", directory: join(home, ".codex", "sessions") },
+  ];
+  for (const candidate of candidates) {
+    const files = walkJsonl(candidate.directory);
+    console.log(`${candidate.name}: ${files.length} JSONL file(s)`);
+    console.log(`  path: ${candidate.directory}`);
+  }
+}
+
+async function main(): Promise<void> {
+  const { command, args } = parseArgs(process.argv.slice(2));
+  const root = rootArg(args);
+
+  if (command === "init") {
+    const config = initLedger(root);
+    console.log(`Initialized AgentYield ledger at ${ledgerPaths(root).ledgerDir}`);
+    console.log(`Attribution window: ${config.attributionWindowMinutes} minutes`);
+    return;
+  }
+
+  if (command === "doctor") {
+    countCandidateLogs();
+    return;
+  }
+
+  if (command === "ingest") {
+    const agent = normalizeAgentName(optionValue(args.agent, "agent"));
+    const fileArg = optionValue(args.file, "file");
+    const file = resolve(fileArg);
+    if (!existsSync(file)) throw new Error(`File not found: ${file}`);
+    const parsed = overrideAgent(parseJsonlFile(file), agent);
+    const result = appendEvents(root, parsed);
+    console.log(`Ingested ${result.added} event(s) from ${basename(file)} (${result.duplicates} duplicate(s)).`);
+    return;
+  }
+
+  if (command === "git") {
+    const config = readConfig(root);
+    const days = numberArg(args, "days", 30);
+    const commits = listCommits(root, days);
+    const attributed = attributeCommits(readEvents(root), commits, config.attributionWindowMinutes);
+    writeCommits(root, attributed);
+    const linked = attributed.filter((commit) => commit.attribution).length;
+    console.log(`Loaded ${attributed.length} commit(s) from the last ${days} day(s). Linked ${linked} to an agent session.`);
+    return;
+  }
+
+  if (command === "report") {
+    const events = readEvents(root);
+    const commits = readCommits(root);
+    const days = numberArg(args, "days", 30);
+    const report = buildReport(events, commits, { days });
+    writeFileSync(ledgerPaths(root).configPath.replace("config.json", "latest-report.json"), JSON.stringify(report, null, 2) + "\n", "utf8");
+    if (args.json === true) {
+      console.log(JSON.stringify(report, null, 2));
+    } else if (args.markdown === true || args.md === true) {
+      console.log(renderMarkdown(report));
+    } else {
+      console.log(renderText(report));
+    }
+    return;
+  }
+
+  if (command === "receipt") {
+    const commitPrefix = optionValue(args.commit, "commit");
+    const events = readEvents(root);
+    const commits = readCommits(root);
+    const commit = commits.find((item) => item.hash.startsWith(commitPrefix) || item.shortHash.startsWith(commitPrefix));
+    if (!commit) throw new Error(`Commit not found in ledger: ${commitPrefix}`);
+    const sessionId = typeof args["session-id"] === "string" ? args["session-id"] : undefined;
+    const created = createReceipt(events, commit, sessionId);
+    const receipts = readReceipts(root);
+    if (receipts.some((receipt) => receipt.id === created.id)) {
+      console.log(`Receipt already exists: ${created.id}`);
+      return;
+    }
+    const receipt = appendReceipt(root, created);
+    writeReceipts(root, [...receipts, receipt]);
+    console.log(`Created receipt ${receipt.id}`);
+    console.log(`  commit: ${receipt.commit}`);
+    console.log(`  session: ${receipt.agent}:${receipt.sessionId}`);
+    console.log(`  hash: ${receipt.hash}`);
+    return;
+  }
+
+  if (command === "verify") {
+    const receipts = readReceipts(root);
+    const result = verifyReceipts(receipts);
+    console.log(`${result.checked} receipt(s) checked`);
+    if (result.valid) {
+      console.log("Receipt chain is valid.");
+    } else {
+      for (const problem of result.problems) console.error(problem);
+      process.exitCode = 1;
+    }
+    return;
+  }
+
+  if (command === "dashboard") {
+    const instance = await startDashboard({
+      root,
+      port: numberArg(args, "port", 4173),
+      days: numberArg(args, "days", 30),
+    });
+    console.log(`AgentYield dashboard running at ${instance.url}`);
+    console.log("Press Ctrl+C to stop.");
+    return;
+  }
+
+  printHelp();
+  if (command !== "help" && command !== "--help" && command !== "-h") process.exitCode = 1;
+}
+
+main().catch((error: unknown) => {
+  console.error(`AgentYield: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
+});
+

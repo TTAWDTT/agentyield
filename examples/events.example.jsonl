@@ -1,0 +1,4 @@
+{"type":"session","ts":"2026-09-26T10:00:00Z","session_id":"demo-1","agent":"codex","project":"D:/code/example","model":"example"}
+{"type":"turn","ts":"2026-09-26T10:00:01Z","session_id":"demo-1","agent":"codex","model":"example","usage":{"input_tokens":1200,"output_tokens":520,"cost_usd":0.0142}}
+{"type":"result","ts":"2026-09-26T10:00:02Z","session_id":"demo-1","agent":"codex"}
+{"type":"turn","ts":"2026-09-26T10:02:00Z","session_id":"demo-2","agent":"claude","usage":{"input_tokens":2400,"cache_read_input_tokens":800,"output_tokens":0,"cost_usd":0.0311}}

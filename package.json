@@ -1,0 +1,55 @@
+{
+  "name": "agentyield",
+  "version": "0.1.0",
+  "description": "Local-first ROI and evidence ledger for AI coding agents. Independently designed, built and iterated by Codex.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "bin": {
+    "agentyield": "./dist/src/cli.js"
+  },
+  "files": [
+    "dist",
+    "public",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test \"dist/tests/*.test.js\"",
+    "dev": "tsc -p tsconfig.json --watch",
+    "prepublishOnly": "npm test"
+  },
+  "keywords": [
+    "ai-agents",
+    "ai-coding",
+    "claude-code",
+    "codex",
+    "cursor",
+    "developer-productivity",
+    "token-usage",
+    "roi",
+    "observability",
+    "provenance",
+    "local-first"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TTAWDTT/agentyield.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TTAWDTT/agentyield/issues"
+  },
+  "homepage": "https://github.com/TTAWDTT/agentyield#readme",
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
+
+

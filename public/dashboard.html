@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AgentYield</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; background:#0b1020; color:#e8ecf7; }
+    body { margin:0; padding:32px; }
+    header { display:flex; align-items:baseline; gap:12px; margin-bottom:28px; }
+    h1 { font-size:24px; margin:0; }
+    .tag { opacity:.6; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+    .card { border:1px solid #222c48; border-radius:14px; padding:18px; background:#111a33; }
+    .label { font-size:12px; text-transform:uppercase; letter-spacing:.08em; opacity:.6; }
+    .value { font-size:28px; margin-top:8px; }
+    .sub { margin-top:4px; opacity:.65; font-size:13px; }
+    table { width:100%; border-collapse:collapse; margin-top:24px; }
+    th,td { text-align:left; padding:10px; border-bottom:1px solid #222c48; font-size:14px; }
+    th { opacity:.65; font-size:12px; text-transform:uppercase; }
+    code { color:#9dc7ff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AgentYield</h1>
+    <span class="tag">local evidence ledger</span>
+  </header>
+  <main id="main">Loading local ledger…</main>
+  <script>
+    async function load() {
+      try {
+        const response = await fetch('/api/report');
+        const report = await response.json();
+        const zeroRows = report.sessionsWithZeroCommits.map(s =>
+          `<tr><td><code>${s.agent}:${s.sessionId}</code></td><td>${s.outputTokens.toLocaleString()}</td><td>$${s.costUsd.toFixed(4)}</td></tr>`
+        ).join('');
+        const topRows = report.topSessions.map(s =>
+          `<tr><td><code>${s.agent}:${s.sessionId}</code></td><td>${s.outputTokens.toLocaleString()}</td><td>${s.inputTokens.toLocaleString()}</td><td>${s.commits}</td></tr>`
+        ).join('');
+        document.getElementById('main').innerHTML = `
+          <section class="grid">
+            <article class="card"><div class="label">Sessions</div><div class="value">${report.sessions}</div><div class="sub">last ${report.days} days</div></article>
+            <article class="card"><div class="label">Commits</div><div class="value">${report.commits}</div><div class="sub">attributed Git history</div></article>
+            <article class="card"><div class="label">Output tokens</div><div class="value">${report.outputTokens.toLocaleString()}</div><div class="sub">input ${report.inputTokens.toLocaleString()}</div></article>
+            <article class="card"><div class="label">Yield</div><div class="value">${report.commitsPer1kOutputTokens}</div><div class="sub">commits / 1,000 output tokens</div></article>
+            <article class="card"><div class="label">Declared cost</div><div class="value">$${report.declaredCostUsd.toFixed(4)}</div><div class="sub">when provider supplies it</div></article>
+            <article class="card"><div class="label">Git churn</div><div class="value">+${report.additions.toLocaleString()}</div><div class="sub">-${report.deletions.toLocaleString()}</div></article>
+          </section>
+          <table><thead><tr><th>Zero-commit session</th><th>Output tokens</th><th>Declared cost</th></tr></thead><tbody>${zeroRows || '<tr><td colspan=3>None with measurable evidence.</td></tr>'}</tbody></table>
+          <table><thead><tr><th>Top session</th><th>Output</th><th>Input</th><th>Commits</th></tr></thead><tbody>${topRows}</tbody></table>
+        `;
+      } catch (error) {
+        document.getElementById('main').innerHTML = `<div class="card"><h2>Ledger unavailable</h2><p>Run <code>agentyield init</code>, ingest sessions, and refresh.</p></div>`;
+      }
+    }
+    load();
+    setInterval(load, 10000);
+  </script>
+</body>
+</html>
