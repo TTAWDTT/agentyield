@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { normalizeEvent } from "../src/normalize.js";
+import { normalizeEvent, parseJsonlFile } from "../src/normalize.js";
 
 test("normalizes Claude Code style usage", () => {
   const event = normalizeEvent({
@@ -9,11 +9,7 @@ test("normalizes Claude Code style usage", () => {
     sessionId: "abc123",
     message: {
       model: "claude-model",
-      usage: {
-        input_tokens: 100,
-        cache_read_input_tokens: 40,
-        output_tokens: 25,
-      },
+      usage: { input_tokens: 100, cache_read_input_tokens: 40, output_tokens: 25 },
       content: "hello",
     },
   }, "/tmp/session.jsonl", 1);
@@ -50,3 +46,28 @@ test("ignores records without timestamp or session id", () => {
   assert.equal(normalizeEvent({ type: "assistant", sessionId: "x" }, "f", 1), null);
   assert.equal(normalizeEvent({ type: "assistant", timestamp: new Date().toISOString() }, "f", 1), null);
 });
+
+test("parses a Codex CLI session stream with inherited session metadata", () => {
+  const events = parseJsonlFile("tests/fixtures/codex-session.jsonl");
+  assert.equal(events.length, 5);
+  assert.equal(events.every((event) => event.sessionId === "019efe80-demo"), true);
+  const session = events.find((event) => event.kind === "session");
+  assert.equal(session?.project, "/workspace/example");
+  const token = events.find((event) => event.kind === "turn" && event.usage);
+  assert.equal(token?.usage?.inputTokens, 12251);
+  assert.equal(token?.usage?.cachedInputTokens, 5888);
+  const call = events.find((event) => event.kind === "tool" && event.toolName === "apply_patch");
+  assert.ok(call);
+  const mcp = events.find((event) => event.toolName === "create_repo");
+  assert.equal(mcp?.toolDurationMs, 297);
+  assert.equal(mcp?.ok, true);
+});
+
+test("parses Claude Code tool_use content as a tool event", () => {
+  const events = parseJsonlFile("tests/fixtures/claude-session.jsonl");
+  const tool = events.find((event) => event.kind === "tool");
+  assert.equal(tool?.toolName, "Edit");
+  assert.equal(tool?.usage?.inputTokens, 10);
+  assert.equal(tool?.sessionId, "609efeca-claude");
+});
+

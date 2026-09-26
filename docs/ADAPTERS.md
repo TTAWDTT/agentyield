@@ -26,7 +26,7 @@ Everything else is optional.
 If usage is absent but prompt/output text is present, AgentYield estimates tokens
 using characters/4. The estimate is only used when provider usage is unavailable.
 
-## Claude Code
+## Claude Code (validated against public JSONL fixtures)
 
 Current mapping:
 
@@ -36,7 +36,7 @@ Current mapping:
 - `message.usage.output_tokens` becomes `usage.outputTokens`;
 - `message.content` is flattened when it is an array of text parts.
 
-## Codex CLI response streams
+## Codex CLI session streams (validated against public JSONL fixtures)
 
 Current mapping:
 
@@ -72,3 +72,31 @@ For each Git commit, AgentYield records:
 High confidence requires the session id to appear in the commit subject.
 Otherwise, AgentYield uses the nearest event inside the configured window and
 labels the evidence as `nearest-event-time`.
+
+
+## Codex CLI session stream additions
+
+Real Codex logs are not always `response.completed` streams. The parser now also
+understands:
+
+- `session_meta.payload.id` -> session id;
+- `session_meta.payload.cwd` -> project;
+- `turn_context.payload.model` -> model;
+- `event_msg.payload.token_count.info.last_token_usage` -> token usage;
+- `response_item.payload.function_call` -> tool event;
+- `event_msg.payload.mcp_tool_call_end` -> tool event with duration and success.
+
+When a later record has no session id, AgentYield inherits the last known
+session id from the same file.
+
+## Claude Code fixture additions
+
+Real Claude Code logs often contain:
+
+- `sessionId`, `cwd`, and `message.model`;
+- `message.usage.input_tokens`;
+- `message.usage.cache_read_input_tokens`;
+- `message.content[]` entries with `type: text` and `type: tool_use`.
+
+When a content item is `tool_use`, AgentYield records the record as a tool event
+while preserving its token usage.
