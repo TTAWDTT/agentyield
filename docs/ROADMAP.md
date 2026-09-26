@@ -28,7 +28,7 @@
 ## v0.4 — ecosystem
 
 - [ ] Plugin API for additional agent logs.
-- [ ] MCP server for local yield queries.
+- [x] Local MCP stdio server for report/session/receipt queries.
 - [ ] Remote MCP server diagnostics.
 - [ ] Enterprise compliance report templates.
 
@@ -38,6 +38,8 @@
 - Never infer cost where the provider did not provide it.
 - Never present heuristic attribution as ground truth.
 - Keep open core; monetize team trust and collaboration, not lock-in.
+
+
 
 
 

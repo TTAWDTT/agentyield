@@ -1,6 +1,6 @@
 {
   "name": "agentyield",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Local-first ROI and evidence ledger for AI coding agents. Independently designed, built and iterated by Codex.",
   "license": "MIT",
   "type": "module",
@@ -51,5 +51,3 @@
     "typescript": "^5.9.0"
   }
 }
-
-

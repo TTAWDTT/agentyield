@@ -11,6 +11,7 @@ import { startDashboard } from "./dashboard.js";
 import { discoverLocalFiles, defaultLogDirectory, formatBytes } from "./discover.js";
 import { privacyModeFromValue, redactEvents } from "./privacy.js";
 import { loadPricing } from "./pricing.js";
+import { startMcpServer } from "./mcp.js";
 
 type Args = Record<string, string | boolean | string[]>;
 
@@ -81,6 +82,7 @@ Commands:
   receipt --commit <sha> [--session-id <id>]
   verify                       Verify the receipt hash chain
   dashboard --port 4173        Open the local dashboard
+  mcp                          Serve local yield tools over MCP stdio
   help                         Show this help
 
 Common options:
@@ -231,6 +233,15 @@ async function main(): Promise<void> {
       for (const problem of result.problems) console.error(problem);
       process.exitCode = 1;
     }
+    return;
+  }
+
+  if (command === "mcp") {
+    await startMcpServer({
+      root,
+      days: numberArg(args, "days", 30),
+      pricing: typeof args.pricing === "string" ? loadPricing(resolve(args.pricing)) : undefined,
+    });
     return;
   }
 
