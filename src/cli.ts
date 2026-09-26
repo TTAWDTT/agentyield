@@ -8,6 +8,7 @@ import { buildReport, renderMarkdown, renderText } from "./report.js";
 import { attributeCommits, listCommits } from "./git.js";
 import { appendReceipt, createReceipt, verifyReceipts } from "./receipt.js";
 import { startDashboard } from "./dashboard.js";
+import { discoverLocalFiles, defaultLogDirectory, formatBytes } from "./discover.js";
 
 type Args = Record<string, string | boolean | string[]>;
 
@@ -69,8 +70,10 @@ Usage:
 
 Commands:
   init                         Create a .agentyield ledger
-  doctor                       Discover likely local agent log locations
+  doctor                       Count likely local agent logs
+  discover --agent codex       List local agent JSONL files without parsing
   ingest --agent claude --file <path>
+  ingest --agent codex --auto  Ingest recent local Claude/Codex logs
   git --days 30                Read local Git history and attribute commits
   report --days 30 [--json|--markdown]
   receipt --commit <sha> [--session-id <id>]
@@ -113,8 +116,43 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (command === "discover") {
+    const agent = normalizeAgentName(optionValue(args.agent, "agent"));
+    const files = discoverLocalFiles(agent, {
+      sourceDir: typeof args["source-dir"] === "string" ? resolve(args["source-dir"]) : undefined,
+      days: numberArg(args, "days", 7),
+      limit: numberArg(args, "limit", 100),
+      home: typeof args.home === "string" ? args.home : undefined,
+    });
+    const totalBytes = files.reduce((total, file) => total + file.sizeBytes, 0);
+    console.log(`${agent}: ${files.length} recent JSONL file(s), ${formatBytes(totalBytes)}`);
+    if (!files.length) {
+      const expected = defaultLogDirectory(agent);
+      if (expected) console.log(`Expected default directory: ${expected}`);
+    }
+    return;
+  }
+
   if (command === "ingest") {
     const agent = normalizeAgentName(optionValue(args.agent, "agent"));
+    if (args.auto === true) {
+      if (agent === "generic") throw new Error("Auto-discovery requires claude or codex.");
+      const files = discoverLocalFiles(agent, {
+        sourceDir: typeof args["source-dir"] === "string" ? resolve(args["source-dir"]) : undefined,
+        days: numberArg(args, "days", 7),
+        limit: numberArg(args, "limit", 100),
+        home: typeof args.home === "string" ? args.home : undefined,
+      });
+      if (args["dry-run"] === true) {
+        for (const file of files) console.log(`${file.modifiedAt}  ${formatBytes(file.sizeBytes)}  ${file.path}`);
+        console.log(`Dry run: ${files.length} file(s) would be parsed.`);
+        return;
+      }
+      const parsed = files.flatMap((file) => overrideAgent(parseJsonlFile(file.path), agent));
+      const result = appendEvents(root, parsed);
+      console.log(`Auto-ingested ${result.added} event(s) from ${files.length} file(s) (${result.duplicates} duplicate(s)).`);
+      return;
+    }
     const fileArg = optionValue(args.file, "file");
     const file = resolve(fileArg);
     if (!existsSync(file)) throw new Error(`File not found: ${file}`);
@@ -205,4 +243,5 @@ main().catch((error: unknown) => {
   console.error(`AgentYield: ${error instanceof Error ? error.message : String(error)}`);
   process.exitCode = 1;
 });
+
 

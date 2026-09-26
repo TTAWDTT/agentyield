@@ -43,8 +43,9 @@ node dist/src/cli.js --help
 
 ```bash
 agentyield init
-agentyield ingest --agent claude --file ~/.claude/projects/example/session.jsonl
-agentyield ingest --agent codex --file ~/.codex/sessions/example/session.jsonl
+agentyield discover --agent codex --days 7
+agentyield ingest --agent codex --auto --days 7 --dry-run
+agentyield ingest --agent codex --auto --days 7
 agentyield git --days 30
 agentyield report --days 30
 agentyield dashboard --port 4173
@@ -129,4 +130,6 @@ CI runs type checking, tests, and package build on Node 22 and 24.
 - CI and package metadata.
 
 The project is being actively iterated by Codex.
+
+
 

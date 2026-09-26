@@ -41,8 +41,9 @@ node dist/src/cli.js --help
 
 ```bash
 agentyield init
-agentyield ingest --agent claude --file ~/.claude/projects/example/session.jsonl
-agentyield ingest --agent codex --file ~/.codex/sessions/example/session.jsonl
+agentyield discover --agent codex --days 7
+agentyield ingest --agent codex --auto --days 7 --dry-run
+agentyield ingest --agent codex --auto --days 7
 agentyield git --days 30
 agentyield report --days 30
 agentyield dashboard --port 4173
@@ -125,4 +126,6 @@ CI 会在 Node 22 / 24 上运行类型检查、测试和构建。
 - CI 与包元数据。
 
 本项目正由 Codex 持续迭代。
+
+
 

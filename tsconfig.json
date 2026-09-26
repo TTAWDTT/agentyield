@@ -11,11 +11,12 @@
     "sourceMap": true,
     "strict": true,
     
-    "exactOptionalPropertyTypes": true,
+    
     "skipLibCheck": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*.ts", "tests/**/*.ts"]
 }
+
 

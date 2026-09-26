@@ -13,7 +13,7 @@
 ## v0.2 — adoption
 
 - [ ] Interactive `init` and privacy settings.
-- [ ] Direct `--auto-discover` ingestion for Claude Code and Codex.
+- [x] `discover` and `ingest --auto` for Claude Code and Codex.
 - [ ] Better fixture corpus and snapshot tests.
 - [ ] SQLite query backend for large logs.
 - [ ] GitHub Action for PR yield summaries.
@@ -38,3 +38,4 @@
 - Never infer cost where the provider did not provide it.
 - Never present heuristic attribution as ground truth.
 - Keep open core; monetize team trust and collaboration, not lock-in.
+
