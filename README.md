@@ -1,5 +1,8 @@
 # AgentYield
 
+![CI](https://github.com/TTAWDTT/agentyield/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 **A local-first ROI and evidence ledger for AI coding agents.**
 
 Most tools stop at token dashboards. AgentYield joins what an agent spent with
@@ -148,3 +151,5 @@ agentyield ingest --agent codex --auto --days 7
 With `redact-text`, the ledger retains timestamps, model, tool names, token
 counts, declared cost, session ids, and attribution evidence, but not prompt or
 output text.
+
+

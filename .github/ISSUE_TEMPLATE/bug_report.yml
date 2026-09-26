@@ -1,0 +1,30 @@
+name: Bug report
+description: Report a broken command, bad metric, or adapter mismatch.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Include the command and redacted output.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: AgentYield version / commit
+  - type: dropdown
+    id: agent
+    attributes:
+      label: Adapter
+      options:
+        - claude
+        - codex
+        - generic
+        - other

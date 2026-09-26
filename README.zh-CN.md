@@ -1,5 +1,8 @@
 # AgentYield
 
+![CI](https://github.com/TTAWDTT/agentyield/actions/workflows/ci.yml/badge.svg)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 **面向 AI coding agent 的本地优先 ROI 与证据账本。**
 
 大多数工具止步于 token 看板。AgentYield 把“模型消耗了什么”和“Git 里真实改变了什么”
@@ -126,6 +129,8 @@ CI 会在 Node 22 / 24 上运行类型检查、测试和构建。
 - CI 与包元数据。
 
 本项目正由 Codex 持续迭代。
+
+
 
 
 

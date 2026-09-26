@@ -1,0 +1,13 @@
+# Citation
+
+If you use AgentYield in research or a public benchmark, cite the repository:
+
+```bibtex
+@software{agentyield,
+  title = {AgentYield: Local-first ROI and Evidence Ledger for AI Coding Agents},
+  author = {Zhen Luo and Codex},
+  year = {2026},
+  url = {https://github.com/TTAWDTT/agentyield},
+  license = {MIT}
+}
+```
