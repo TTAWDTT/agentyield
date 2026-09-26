@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, extname, join, resolve } from "node:path";
+import { basename, extname, join, relative, resolve } from "node:path";
 import { initLedger, ledgerPaths, readCommits, readConfig, readEvents, readReceipts, writeCommits, writeReceipts, appendEvents } from "./ledger.js";
 import { normalizeAgentName, overrideAgent, parseJsonlFile } from "./normalize.js";
 import { buildReport, renderMarkdown, renderText } from "./report.js";
@@ -73,6 +73,7 @@ Usage:
 
 Commands:
   init [--privacy redact-text] Create a .agentyield ledger
+  demo                         Create a small local demo ledger
   doctor                       Count likely local agent logs
   discover --agent codex       List local agent JSONL files without parsing
   ingest --agent claude --file <path>
@@ -118,6 +119,20 @@ async function main(): Promise<void> {
 
   if (command === "doctor") {
     countCandidateLogs();
+    return;
+  }
+
+  if (command === "demo") {
+    const demoRoot = args.root ? root : resolve(process.cwd(), ".agentyield", "demo");
+    initLedger(demoRoot);
+    const examplePath = resolve(import.meta.dirname, "..", "..", "examples", "events.example.jsonl");
+    const exampleEvents = parseJsonlFile(examplePath);
+    const result = appendEvents(demoRoot, exampleEvents);
+    const report = buildReport(readEvents(demoRoot), readCommits(demoRoot), { days: 30 });
+    console.log(`Demo ledger: ${demoRoot}`);
+    console.log(`Ingested ${result.added} demo event(s).`);
+    console.log(renderText(report));
+    console.log(`Open dashboard: agentyield dashboard --root ${demoRoot}`);
     return;
   }
 

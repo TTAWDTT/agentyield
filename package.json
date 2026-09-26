@@ -12,6 +12,7 @@
   "files": [
     "dist",
     "public",
+    "examples",
     "README.md",
     "README.zh-CN.md",
     "LICENSE"
@@ -32,11 +33,13 @@
     "codex",
     "cursor",
     "developer-productivity",
-    "token-usage",
-    "roi",
+    "local-first",
+    "mcp",
     "observability",
+    "pricing",
     "provenance",
-    "local-first"
+    "roi",
+    "token-usage"
   ],
   "repository": {
     "type": "git",

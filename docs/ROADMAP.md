@@ -12,7 +12,7 @@
 
 ## v0.2 — adoption
 
-- [x] Privacy-aware `init --privacy redact-text`.
+- [x] Privacy-aware `init --privacy redact-text`.\n- [x] Built-in local demo ledger.
 - [x] `discover` and `ingest --auto` for Claude Code and Codex.
 - [ ] Better fixture corpus and snapshot tests.
 - [ ] SQLite query backend for large logs.
@@ -38,6 +38,7 @@
 - Never infer cost where the provider did not provide it.
 - Never present heuristic attribution as ground truth.
 - Keep open core; monetize team trust and collaboration, not lock-in.
+
 
 
 

@@ -139,8 +139,8 @@ export function renderMarkdown(report: YieldReport): string {
   lines.push(`- Output tokens: ${report.outputTokens.toLocaleString("en-US")}`);
   lines.push(`- Output tokens / commit: ${report.outputTokensPerCommit.toLocaleString("en-US")}`);
   lines.push(`- Commits / 1,000 output tokens: ${report.commitsPer1kOutputTokens.toLocaleString("en-US")}`);
-  lines.push(`- Declared cost: ${report.declaredCostUsd.toFixed(4)}`);
-  lines.push(`- User-priced estimated cost: ${report.estimatedCostUsd.toFixed(4)}`);
+  lines.push(`- Declared cost: $${report.declaredCostUsd.toFixed(4)}`);
+  lines.push(`- User-priced estimated cost: $${report.estimatedCostUsd.toFixed(4)}`);
   lines.push(`- Git additions: ${report.additions.toLocaleString("en-US")}`);
   lines.push(`- Git deletions: ${report.deletions.toLocaleString("en-US")}`);
   lines.push("");
@@ -172,7 +172,7 @@ export function renderText(report: YieldReport): string {
     `AgentYield Report (${report.days} days)`,
     `Sessions: ${report.sessions} | Events: ${report.events} | Commits: ${report.commits}`,
     `Tokens in: ${report.inputTokens} | cached: ${report.cachedInputTokens} | out: ${report.outputTokens}`,
-    `Declared cost: ${report.declaredCostUsd.toFixed(4)} | estimated: ${report.estimatedCostUsd.toFixed(4)}`,
+    `Declared cost: $${report.declaredCostUsd.toFixed(4)} | estimated: $${report.estimatedCostUsd.toFixed(4)}`,
     `Yield: ${report.commitsPer1kOutputTokens} commits / 1,000 output tokens`,
     `Git churn: +${report.additions} / -${report.deletions}`,
     `Zero-commit sessions: ${report.sessionsWithZeroCommits.length}`,
@@ -180,6 +180,8 @@ export function renderText(report: YieldReport): string {
   ];
   return lines.join("\n");
 }
+
+
 
 
 
