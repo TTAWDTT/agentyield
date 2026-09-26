@@ -82,7 +82,7 @@ understands:
 - `session_meta.payload.id` -> session id;
 - `session_meta.payload.cwd` -> project;
 - `turn_context.payload.model` -> model;
-- `event_msg.payload.token_count.info.last_token_usage` -> token usage;
+- `event_msg.payload.token_count.info.last_token_usage` -> incremental request usage;\n- `total_token_usage` is cumulative and is used only when no incremental usage exists.
 - `response_item.payload.function_call` -> tool event;
 - `event_msg.payload.mcp_tool_call_end` -> tool event with duration and success.
 
@@ -100,3 +100,4 @@ Real Claude Code logs often contain:
 
 When a content item is `tool_use`, AgentYield records the record as a tool event
 while preserving its token usage.
+

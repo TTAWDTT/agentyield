@@ -121,20 +121,18 @@ function extractUsage(record: UnknownRecord): Omit<TokenUsage, "totalTokens"> | 
   const lastUsage = payloadInfo && isRecord(payloadInfo.last_token_usage) ? payloadInfo.last_token_usage : undefined;
   const totalUsage = payloadInfo && isRecord(payloadInfo.total_token_usage) ? payloadInfo.total_token_usage : undefined;
 
-  const sources = [direct, messageUsage, responseUsage, lastUsage, totalUsage].filter(
-    (source): source is UnknownRecord => isRecord(source),
-  );
+  const usageSource = lastUsage ?? direct ?? messageUsage ?? responseUsage ?? totalUsage;
 
   let inputTokens = 0;
   let cachedInputTokens = 0;
   let outputTokens = 0;
   let costUsd: number | undefined;
 
-  for (const source of sources) {
-    inputTokens = inputTokens || asNumber(source.input_tokens) || asNumber(source.prompt_tokens) || asNumber(source.inputTokens) || 0;
-    cachedInputTokens = cachedInputTokens || asNumber(source.cache_read_input_tokens) || asNumber(source.cached_input_tokens) || asNumber(source.cachedInputTokens) || 0;
-    outputTokens = outputTokens || asNumber(source.output_tokens) || asNumber(source.completion_tokens) || asNumber(source.outputTokens) || 0;
-    costUsd = costUsd ?? asNumber(source.cost_usd) ?? asNumber(source.costUSD) ?? asNumber(source.cost);
+  if (usageSource) {
+    inputTokens = asNumber(usageSource.input_tokens) ?? asNumber(usageSource.prompt_tokens) ?? asNumber(usageSource.inputTokens) ?? 0;
+    cachedInputTokens = asNumber(usageSource.cache_read_input_tokens) ?? asNumber(usageSource.cached_input_tokens) ?? asNumber(usageSource.cachedInputTokens) ?? 0;
+    outputTokens = asNumber(usageSource.output_tokens) ?? asNumber(usageSource.completion_tokens) ?? asNumber(usageSource.outputTokens) ?? 0;
+    costUsd = asNumber(usageSource.cost_usd) ?? asNumber(usageSource.costUSD) ?? asNumber(usageSource.cost);
   }
 
   costUsd = costUsd ?? asNumber(record.cost_usd) ?? asNumber(record.costUSD) ?? asNumber(record.cost);
